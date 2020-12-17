@@ -673,6 +673,11 @@ class ConanMultiPackager(object):
                 r.run()
                 self._packages_summary.append({"configuration":  build, "package" : r.results})
             else:
+                cross_window_flag = False
+                if platform.system() != 'Windows':
+                    cross_window_flag |= os.getenv("CONAN_VISUAL_VERSIONS", None) != None
+                    cross_window_flag |= os.getenv("CONAN_VISUAL_RUNTIMES", None) != None
+                    cross_window_flag |= os.getenv("CONAN_VISUAL_TOOLSETS", None) != None
                 docker_image = self._get_docker_image(build)
                 r = DockerCreateRunner(profile_text, base_profile_text, base_profile_name,
                                        build.reference,
@@ -705,7 +710,8 @@ class ConanMultiPackager(object):
                                        force_selinux=self.force_selinux,
                                        skip_recipe_export=skip_recipe_export,
                                        update_dependencies=self.update_dependencies,
-                                       cwd=self.cwd)
+                                       cwd=self.cwd
+                                       cross_cwd_flag = cross_window_flag)
 
                 r.run(pull_image=not pulled_docker_images[docker_image],
                       docker_entry_script=self.docker_entry_script)

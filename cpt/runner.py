@@ -186,7 +186,8 @@ class DockerCreateRunner(object):
                  skip_recipe_export=False,
                  update_dependencies=False,
                  lockfile=None,
-                 cwd=None):
+                 cwd=None,
+                 cross_cwd_flag=False):
 
         self.printer = printer or Printer()
         self._upload = upload
@@ -222,6 +223,8 @@ class DockerCreateRunner(object):
         self._skip_recipe_export = skip_recipe_export
         self._update_dependencies = update_dependencies
         self._cwd = cwd or os.getcwd()
+        self._cross_cwd_flag = cross_cwd_flag
+        
 
     def _pip_update_conan_command(self):
         commands = []
@@ -298,10 +301,14 @@ class DockerCreateRunner(object):
             update_command = ""
         volume_options = ":z" if (DockerCreateRunner.is_selinux_running() or self._force_selinux) else ""
 
+        cwd = self._cwd
+        if self._cross_cwd_flag == True:
+            cwd = 'C:' + cwd
+
         command = ('%s docker run --rm -v "%s:%s/project%s" %s %s %s %s %s '
                    '"%s cd project && '
                    '%s run_create_in_docker "' % (self._sudo_docker_command,
-                                                  self._cwd,
+                                                  cwd,
                                                   self._docker_conan_home,
                                                   volume_options,
                                                   env_vars_text,
