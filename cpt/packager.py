@@ -125,6 +125,7 @@ class ConanMultiPackager(object):
                  docker_entry_script=None,
                  docker_32_images=None,
                  docker_conan_home=None,
+                 docker_host_conan_home=None,
                  docker_shell=None,
                  pip_install=None,
                  build_policy=None,
@@ -231,6 +232,11 @@ class ConanMultiPackager(object):
                            self._docker_image is not None)
 
         self.docker_conan_home = docker_conan_home or os.getenv("CONAN_DOCKER_HOME", None)
+        
+        self.docker_host_conan_home = docker_host_conan_home or os.getenv("CONAN_DOCKER_HOST_HOME", None)
+        
+        if self.docker_host_conan_home is None:
+            self.docker_host_conan_home = self.cwd
 
         os_name = self._platform_info.system() if not self.use_docker else "Linux"
         self.build_generator = BuildGenerator(reference, os_name, gcc_versions,
@@ -673,11 +679,6 @@ class ConanMultiPackager(object):
                 r.run()
                 self._packages_summary.append({"configuration":  build, "package" : r.results})
             else:
-                cross_window_flag = False
-                if platform.system() != 'Windows':
-                    cross_window_flag |= os.getenv("CONAN_VISUAL_VERSIONS", None) != None
-                    cross_window_flag |= os.getenv("CONAN_VISUAL_RUNTIMES", None) != None
-                    cross_window_flag |= os.getenv("CONAN_VISUAL_TOOLSETS", None) != None
                 docker_image = self._get_docker_image(build)
                 r = DockerCreateRunner(profile_text, base_profile_text, base_profile_name,
                                        build.reference,
@@ -695,6 +696,7 @@ class ConanMultiPackager(object):
                                        runner=self.runner,
                                        docker_shell=self.docker_shell,
                                        docker_conan_home=self.docker_conan_home,
+                                       docker_host_conan_home=self.docker_host_conan_home,
                                        docker_platform_param=self.docker_platform_param,
                                        docker_run_options=self.docker_run_options,
                                        lcow_user_workaround=self.lcow_user_workaround,
@@ -710,8 +712,7 @@ class ConanMultiPackager(object):
                                        force_selinux=self.force_selinux,
                                        skip_recipe_export=skip_recipe_export,
                                        update_dependencies=self.update_dependencies,
-                                       cwd=self.cwd,
-                                       cross_cwd_flag = cross_window_flag)
+                                       cwd=self.cwd)
 
                 r.run(pull_image=not pulled_docker_images[docker_image],
                       docker_entry_script=self.docker_entry_script)
