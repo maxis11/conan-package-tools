@@ -295,13 +295,13 @@ class DockerCreateRunner(object):
                             raise Exception("Error removing the temp container: %s" % command)
 
         if self._always_update_conan_in_docker:
-            update_command = self._pip_update_conan_command() + " && "
+            update_command = self._pip_update_conan_command() + " ; "
         else:
             update_command = ""
         volume_options = ":z" if (DockerCreateRunner.is_selinux_running() or self._force_selinux) else ""
 
         command = ('%s docker run --rm -v "%s:%s/project%s" %s %s %s %s %s '
-                   '"%s cd project && '
+                   '"%s cd project ; '
                    '%s run_create_in_docker "' % (self._sudo_docker_command,
                                                   self._docker_host_conan_home,
                                                   self._docker_conan_home,
@@ -317,7 +317,7 @@ class DockerCreateRunner(object):
         # Push entry command before to build
         if docker_entry_script:
             command = command.replace("run_create_in_docker",
-                                      "%s && run_create_in_docker" % docker_entry_script)
+                                      "%s ; run_create_in_docker" % docker_entry_script)
 
         self.printer.print_in_docker(self._docker_image)
         ret = self._runner(command)
