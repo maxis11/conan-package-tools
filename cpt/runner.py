@@ -171,7 +171,7 @@ class DockerCreateRunner(object):
                  always_update_conan_in_docker=False,
                  upload=False, upload_retry=None, upload_only_recipe=None,
                  runner=None,
-                 docker_shell="", docker_conan_home="",
+                 docker_shell="", docker_conan_home="", docker_host_conan_home="",
                  docker_platform_param="", docker_run_options="",
                  lcow_user_workaround="",
                  test_folder=None,
@@ -186,8 +186,7 @@ class DockerCreateRunner(object):
                  skip_recipe_export=False,
                  update_dependencies=False,
                  lockfile=None,
-                 cwd=None,
-                 cross_cwd_flag=False):
+                 cwd=None):
 
         self.printer = printer or Printer()
         self._upload = upload
@@ -207,6 +206,7 @@ class DockerCreateRunner(object):
         self._base_profile_name = base_profile_name
         self._docker_shell = docker_shell
         self._docker_conan_home = docker_conan_home
+        self._docker_host_conan_home = docker_host_conan_home
         self._docker_platform_param = docker_platform_param
         self._docker_run_options = docker_run_options or ""
         self._lcow_user_workaround = lcow_user_workaround
@@ -223,7 +223,6 @@ class DockerCreateRunner(object):
         self._skip_recipe_export = skip_recipe_export
         self._update_dependencies = update_dependencies
         self._cwd = cwd or os.getcwd()
-        self._cross_cwd_flag = cross_cwd_flag
         
 
     def _pip_update_conan_command(self):
@@ -308,7 +307,7 @@ class DockerCreateRunner(object):
         command = ('%s docker run --rm -v "%s:%s/project%s" %s %s %s %s %s '
                    '"%s cd project && '
                    '%s run_create_in_docker "' % (self._sudo_docker_command,
-                                                  cwd,
+                                                  self._docker_host_conan_home,
                                                   self._docker_conan_home,
                                                   volume_options,
                                                   env_vars_text,
